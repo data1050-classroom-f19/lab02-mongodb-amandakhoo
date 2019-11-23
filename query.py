@@ -23,7 +23,8 @@ def query1(minFare, maxFare):
         An array of documents.
     """
     docs = db.taxi.find(
-        # TODO: implement me
+        { 'fare_amount': { '$gte': minFare }, 
+        'fare_amount': {'$lt': maxFare} }
     )
 
     result = [doc for doc in docs]
@@ -71,13 +72,15 @@ def query2(textSearch, minReviews):
 
 
 def query3():
-    """ Groups airbnbs by neighbourhood_group and finds average price of each neighborhood_group sorted in descending order.  
+    """ Groups airbnbs by neighbourhood_group and finds
+     average price of each neighborhood_group sorted in descending order.  
 
     Returns:
         An array of documents.
     """
     docs = db.airbnb.aggregate(
-        # TODO: implement me
+        [{ '$match': { '$group' : { '_id': neighbourhood_group, 'total': { '$sum': $price } } },
+                     { '$sort': { 'total': -1 } } ]
     )
 
     result = [doc for doc in docs]
