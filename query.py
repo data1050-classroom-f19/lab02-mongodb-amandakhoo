@@ -22,9 +22,7 @@ def query1(minFare, maxFare):
     Returns:
         An array of documents.
     """
-    docs = db.taxi.find(
-        { 'fare_amount': { '$gte': minFare }}
-    )
+    docs = db.taxi.find({'fare_amount': {'$elemMatch': {'$gte': minFare, '$lte': maxFare}}})
 
     result = [doc for doc in docs]
     return result
@@ -96,8 +94,9 @@ def query4():
         An array of documents.
     """
     docs = db.taxi.aggregate(
-         [{ '$group': { '_id': 'pickup_datetime', 'total': { '$avg': 'fare_amount' }, 'dist': {'$add': {'$subtract': {'pickup_latitude', 'dropoff_latitude'}, '$subtract': {'pickup_longitude', 'dropoff_longitude'}}} } },
-                     { '$sort': { 'total': -1 } }]
+         [{ '$group': { '_id': 'pickup_datetime', 'total': { '$avg': 'fare_amount' }}},
+                     { '$sort': { 'total': -1 }},
+                     {'$count': {'key'}}]
     )
     result = [doc for doc in docs]
     return result
