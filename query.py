@@ -23,8 +23,7 @@ def query1(minFare, maxFare):
         An array of documents.
     """
     docs = db.taxi.find(
-        { 'fare_amount': { '$gte': minFare }, 
-        'fare_amount': {'$lt': maxFare} }
+        { 'fare_amount': { '$gte': minFare }}
     )
 
     result = [doc for doc in docs]
@@ -78,10 +77,9 @@ def query3():
     Returns:
         An array of documents.
     """
-    docs = db.airbnb.aggregate(
-        [{ '$match': { '$group' : { '_id': neighbourhood_group, 'total': { '$sum': $price } } },
-                     { '$sort': { 'total': -1 } } ]
-    )
+    docs = db.airbnb.aggregate( 
+                    [ { '$group': { '_id': "neighborhood_group", 'total': { '$avg': 'price' } } },
+                     { '$sort': { 'total': -1 } }])
 
     result = [doc for doc in docs]
     return result
@@ -98,7 +96,8 @@ def query4():
         An array of documents.
     """
     docs = db.taxi.aggregate(
-        # TODO: implement me
+         [{ '$group': { '_id': 'pickup_datetime', 'total': { '$avg': 'fare_amount' }, 'dist': {'$add': {'$subtract': {'pickup_latitude', 'dropoff_latitude'}, '$subtract': {'pickup_longitude', 'dropoff_longitude'}}} } },
+                     { '$sort': { 'total': -1 } }]
     )
     result = [doc for doc in docs]
     return result
@@ -122,8 +121,30 @@ def query5():
 
 
     """
-    docs = db.airbnb.aggregate(
-        # TODO: implement me
+    docs = db.airbnb.aggregate([
+     {
+           '$geoNear': {
+               'near': {'type': 'Point', 'coordinates': [longitude, latitude]},
+               'distanceField': 'dist.calculated',
+               'maxDistance': 1000,
+               'spherical': False
+           }
+       },
+       {
+           '$project': {
+               '_id': 0,
+               'dist': 1,
+               'name': 1,
+               'neighbourhood': 1,
+               'neighbourhood_group': 1,
+               'price': 1,
+               'room_type': 1
+           }
+       },
+       {
+           '$sort': {'dist': 1}
+       }
+   ]
     )
     result = [doc for doc in docs]
     return result
